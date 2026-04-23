@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>static</title>
+<style>
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+body {
+  margin: 0;
+  background: #000;
+  color: #f5f1ec;
+  height: 100vh;
+  overflow: hidden;
+  font-family: monospace;
+  touch-action: none;
+}
+
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+.sig {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #f5f1ec;
+  text-decoration: none;
+  font: 13px system-ui;
+  opacity: .5;
+}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<a class="sig" href="https://haylortall.github.io/">♡ taylor</a>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+let w, h;
+let spots = [];
+
+const chars = ["░","▒","▓","·","•","+","×","◌"];
+
+function size() {
+  w = canvas.width = innerWidth;
+  h = canvas.height = innerHeight;
+}
+
+size();
+addEventListener("resize", size);
+
+function touch(x, y) {
+  spots.push({ x, y, life: 1 });
+}
+
+addEventListener("mousemove", e => touch(e.clientX, e.clientY));
+
+addEventListener("touchmove", e => {
+  touch(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: true });
+
+function draw() {
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.font = "18px monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  for (let y = 15; y < h; y += 22) {
+    for (let x = 15; x < w; x += 22) {
+      let clear = 0;
+
+      spots.forEach(s => {
+        const d = Math.hypot(x - s.x, y - s.y);
+
+        if (d < 125) {
+          clear = Math.max(clear, (1 - d / 125) * s.life);
+        }
+      });
+
+      ctx.globalAlpha = Math.max(0, .18 + Math.random() * .55 - clear * 1.25);
+      ctx.fillStyle = "#f5f1ec";
+      ctx.fillText(chars[Math.floor(Math.random() * chars.length)], x, y);
+    }
+  }
+
+  spots.forEach(s => s.life *= .975);
+  spots = spots.filter(s => s.life > .03);
+
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(draw);
+}
+
+draw();
+
+addEventListener("dblclick", () => {
+  document.body.style.filter = document.body.style.filter ? "" : "invert(1)";
+});
+</script>
+</body>
+</html>
